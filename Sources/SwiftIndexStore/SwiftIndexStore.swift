@@ -67,6 +67,8 @@ public final class IndexStore {
 
                 let isSystem = lib.unit_reader_is_system_unit(reader)
 
+                print([unit.name, isSystem])
+
                 if !isSystem {
                     return try next(unit)
                 }

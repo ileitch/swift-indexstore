@@ -23,7 +23,6 @@ extension Process {
         process.standardOutput = stdoutPipe
         process.standardError = stderrPipe
         process.launch()
-        process.waitUntilExit()
 
         let stdoutData = stdoutPipe.fileHandleForReading.readDataToEndOfFile()
         guard let stdoutContent = String(data: stdoutData, encoding: .utf8) else {
@@ -35,6 +34,14 @@ extension Process {
             throw ProcessError.invalidUTF8Output(stderrData,
                                                  command: ([bin] + arguments).joined(separator: " "))
         }
+
+        let grp = DispatchGroup()
+        grp.enter()
+        process.terminationHandler = { prs in
+            grp.leave()
+            process.terminate()
+        }
+        grp.wait()
 
         if process.terminationReason != .exit || process.terminationStatus != 0 {
             throw ProcessError.nonZeroExit(
